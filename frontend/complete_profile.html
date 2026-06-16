@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Complete Your Profile - FixGo</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Complete Your Profile</h1>
+        <p>You signed in with Google. Please provide additional details.</p>
+        <form id="profileForm">
+            <input type="text" id="nic" placeholder="NIC Number" required>
+            <textarea id="address" placeholder="Address" required></textarea>
+            <input type="tel" id="phone" placeholder="Phone (optional)">
+            <button type="submit">Save</button>
+        </form>
+    </div>
+    <script>
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                nic: document.getElementById('nic').value,
+                address: document.getElementById('address').value,
+                phone: document.getElementById('phone').value
+            };
+            const res = await fetch('/complete-profile', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (result.success) {
+                window.location.href = '/dashboard';
+            } else {
+                alert('Error: ' + result.message);
+            }
+        });
+    </script>
+</body>
+</html>

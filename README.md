@@ -1,2 +1,4 @@
 FixGo AI is an on-demand web platform that connects users with trusted local home service providers such as electricians, plumbers, cleaners, and carpenters in real time. Users can quickly post service requests, view available workers near their location, compare profiles, ratings, and prices, and instantly book the right person for the job. Service providers can create profiles, showcase their skills, and receive job requests directly through the platform. FixGo AI aims to solve the common problem of finding reliable and fast home help, making everyday repairs and services more convenient, transparent, and accessible. Its motto is: “Fix it fast. Fix it right”
 Motto: “Fix it fast. Fix it right.”
+
+python main.py
