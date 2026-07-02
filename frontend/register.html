@@ -18,6 +18,131 @@
     .divider { display:flex;align-items:center;gap:12px;margin:10px 0; }
     .divider::before,.divider::after { content:'';flex:1;border-top:1px solid var(--border); }
     .divider span { font-size:.78rem;color:var(--text-light); }
+
+    /* OTP field group – beautifully integrated, no UI changes to the rest */
+    .otp-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: nowrap;
+      margin-top: 2px;
+    }
+    .otp-group .otp-input {
+      flex: 1;
+      min-width: 0;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .otp-group .btn-otp {
+      background: #1e2b3c;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 0 18px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.2s;
+      white-space: nowrap;
+      letter-spacing: 0.3px;
+      height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: #0b1a2b;
+      flex-shrink: 0;
+      width: auto;
+      min-width: 100px;
+    }
+    .otp-group .btn-otp:hover {
+      background: #1f3a4e;
+    }
+    .otp-group .btn-otp:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .otp-timer {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-left: 4px;
+    }
+    .field-group .hint {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+
+    /* Ensure all input fields have consistent sizing */
+    .field-group input[type="text"],
+    .field-group input[type="email"],
+    .field-group input[type="password"],
+    .field-group input[type="tel"],
+    .field-group select {
+      width: 100%;
+      box-sizing: border-box;
+      height: 44px;
+      padding: 0 16px;
+      border: 1px solid var(--border, #d1d5db);
+      border-radius: 30px;
+      font-size: 0.9rem;
+      background: white;
+      transition: border-color 0.2s;
+      appearance: auto;
+    }
+    .field-group input:focus,
+    .field-group select:focus {
+      outline: none;
+      border-color: #0b1a2b;
+    }
+    .field-group input.input-error,
+    .field-group select.input-error {
+      border-color: #dc3545;
+    }
+
+    /* Terms & Conditions checkbox */
+    .terms-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 8px 0 4px 0;
+    }
+    .terms-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: #0b1a2b;
+      cursor: pointer;
+    }
+    .terms-group label {
+      font-size: 0.85rem;
+      color: var(--text-color, #333);
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .terms-group label a {
+      color: #0b1a2b;
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .terms-group label a:hover {
+      color: #1f3a4e;
+    }
+    .field-error {
+      display: block;
+      margin-top: 4px;
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .otp-group {
+        flex-wrap: wrap;
+      }
+      .otp-group .btn-otp {
+        width: 100%;
+        min-width: unset;
+      }
+    }
   </style>
 </head>
 <body>
@@ -57,46 +182,104 @@
       <form id="registerForm" novalidate>
 
         <div class="field-group">
-          <label for="full_name">Full Name</label>
+          <label for="full_name">Full Name <span style="color:#dc3545;">*</span></label>
           <input type="text" id="full_name" placeholder="John Doe" required />
           <span class="field-error" id="nameError"></span>
         </div>
 
         <div class="field-group">
-          <label for="email">Email</label>
+          <label for="email">Email <span style="color:#dc3545;">*</span></label>
           <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
           <span class="field-error" id="emailError"></span>
         </div>
 
         <div class="field-group">
-          <label for="password">Password</label>
+          <label for="password">Password <span style="color:#dc3545;">*</span></label>
           <input type="password" id="password" placeholder="Min. 6 characters" required />
           <span class="field-error" id="passwordError"></span>
         </div>
 
         <div class="field-group">
-          <label for="confirm_password">Confirm Password</label>
+          <label for="confirm_password">Confirm Password <span style="color:#dc3545;">*</span></label>
           <input type="password" id="confirm_password" placeholder="Re-enter password" required />
           <span class="field-error" id="confirmError"></span>
         </div>
 
+        <!-- Phone + OTP section: phone is MANDATORY -->
         <div class="field-group">
-          <label for="phone">Phone <span style="font-weight:400;color:var(--text-light)">(optional)</span></label>
-          <input type="tel" id="phone" placeholder="+94771234567 or 0771234567" />
+          <label for="phone">Primary Phone <span style="color:#dc3545;">*</span></label>
+          <div class="otp-group">
+            <input type="tel" id="phone" placeholder="+94771234567 or 0771234567" class="otp-input" required />
+            <button type="button" class="btn-otp" id="sendOtpBtn">Send OTP</button>
+          </div>
           <span class="field-error" id="phoneError"></span>
+          <div class="hint" id="otpHint">Enter phone number to receive OTP via SMS</div>
+        </div>
+
+        <!-- OTP verification field (mandatory) -->
+        <div class="field-group" id="otpFieldGroup" style="display:none;">
+          <label for="otp_code">OTP Code <span style="color:#dc3545;">*</span></label>
+          <div class="otp-group">
+            <input type="text" id="otp_code" placeholder="Enter 6-digit OTP" class="otp-input" inputmode="numeric" maxlength="6" />
+            <button type="button" class="btn-otp" id="verifyOtpBtn" disabled>Verify</button>
+          </div>
+          <span class="field-error" id="otpError"></span>
+          <div class="hint" id="otpTimerHint"></div>
+        </div>
+
+        <!-- Secondary Phone (Optional) -->
+        <div class="field-group">
+          <label for="secondary_phone">Secondary Phone <span style="font-weight:400;color:var(--text-light)">(optional)</span></label>
+          <input type="tel" id="secondary_phone" placeholder="+94771234567 or 0771234567" />
+          <span class="field-error" id="secondaryPhoneError"></span>
         </div>
 
         <div class="field-group">
-          <label for="nic">NIC Number</label>
+          <label for="nic">NIC Number <span style="color:#dc3545;">*</span></label>
           <input type="text" id="nic" placeholder="e.g. 199012345678" required />
           <span class="field-error" id="nicError"></span>
         </div>
 
         <div class="field-group">
-          <label for="address">Address</label>
-          <input type="text" id="address" placeholder="No. 12, Main Street, Colombo" required />
+          <label for="address">Address <span style="color:#dc3545;">*</span></label>
+          <input type="text" id="address" placeholder="No. 12, Main Street" required />
           <span class="field-error" id="addressError"></span>
         </div>
+
+        <!-- City (Mandatory) -->
+        <div class="field-group">
+          <label for="city">City <span style="color:#dc3545;">*</span></label>
+          <input type="text" id="city" placeholder="e.g. Colombo, Kandy, Galle" required />
+          <span class="field-error" id="cityError"></span>
+        </div>
+
+        <!-- Province (Sri Lankan only) -->
+        <div class="field-group">
+          <label for="province">Province <span style="color:#dc3545;">*</span></label>
+          <select id="province" required>
+            <option value="">Select your province</option>
+            <option value="Central">Central Province</option>
+            <option value="Eastern">Eastern Province</option>
+            <option value="North Central">North Central Province</option>
+            <option value="Northern">Northern Province</option>
+            <option value="North Western">North Western Province</option>
+            <option value="Sabaragamuwa">Sabaragamuwa Province</option>
+            <option value="Southern">Southern Province</option>
+            <option value="Uva">Uva Province</option>
+            <option value="Western">Western Province</option>
+          </select>
+          <span class="field-error" id="provinceError"></span>
+        </div>
+
+        <!-- Terms & Conditions -->
+        <div class="terms-group">
+          <input type="checkbox" id="terms" required />
+          <label for="terms">
+            I agree to the <a href="/terms" target="_blank">Terms & Conditions</a> and 
+            <a href="/privacy" target="_blank">Privacy Policy</a> <span style="color:#dc3545;">*</span>
+          </label>
+        </div>
+        <span class="field-error" id="termsError"></span>
 
         <button type="submit" class="btn-signin" id="registerBtn">Create Account</button>
 
@@ -118,6 +301,28 @@
   const notif       = document.getElementById("notification");
   const btnDefault  = btn.innerHTML;
   const spinner     = '<span class="spinner"></span> Creating account…';
+
+  // OTP elements
+  const phoneInput   = document.getElementById("phone");
+  const sendOtpBtn   = document.getElementById("sendOtpBtn");
+  const otpFieldGroup= document.getElementById("otpFieldGroup");
+  const otpInput     = document.getElementById("otp_code");
+  const verifyOtpBtn = document.getElementById("verifyOtpBtn");
+  const otpError     = document.getElementById("otpError");
+  const otpHint      = document.getElementById("otpHint");
+  const otpTimerHint = document.getElementById("otpTimerHint");
+
+  // Other elements
+  const secondaryPhone = document.getElementById("secondary_phone");
+  const provinceSelect = document.getElementById("province");
+  const termsCheckbox  = document.getElementById("terms");
+  const cityInput      = document.getElementById("city");
+
+  // state
+  let otpSent = false;
+  let otpVerified = false;
+  let otpTimer = null;
+  let countdown = 0;
 
   function showNotif(msg, type) {
     notif.textContent = msg;
@@ -143,14 +348,173 @@
   }
 
   function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
-
-  // Phone: Sri Lankan local (07XXXXXXXX) or E.164 (+XXXXXXXXXXX)
   function isValidPhone(p) {
-    if (!p) return true; // optional
+    if (!p) return false;
     return /^(07\d{8}|\+[1-9]\d{6,14})$/.test(p.trim());
   }
 
-  // Real-time validation
+  function startOtpTimer(seconds = 60) {
+    if (otpTimer) clearInterval(otpTimer);
+    countdown = seconds;
+    sendOtpBtn.disabled = true;
+    otpTimerHint.textContent = `Resend in ${countdown}s`;
+    otpTimer = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(otpTimer);
+        otpTimer = null;
+        sendOtpBtn.disabled = false;
+        otpTimerHint.textContent = 'OTP expired. Send again.';
+        if (!otpVerified) {
+          otpSent = false;
+          otpInput.value = '';
+          verifyOtpBtn.disabled = true;
+        }
+      } else {
+        otpTimerHint.textContent = `Resend in ${countdown}s`;
+      }
+    }, 1000);
+  }
+
+  // Send OTP via SMS using Text.lk
+  sendOtpBtn.addEventListener("click", async function () {
+    const phone = phoneInput.value.trim();
+    if (!phone) {
+      setErr("phone","phoneError","Phone number is required.");
+      return;
+    }
+    if (!isValidPhone(phone)) {
+      setErr("phone","phoneError","Please enter a valid phone number.");
+      return;
+    }
+    clearErr("phone","phoneError");
+
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = "Sending...";
+    try {
+      const response = await fetch("/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        otpSent = true;
+        otpVerified = false;
+        otpInput.value = '';
+        verifyOtpBtn.disabled = true;
+        otpFieldGroup.style.display = 'block';
+        otpHint.textContent = `OTP sent to ${phone} via SMS`;
+        showNotif("OTP sent to your phone via SMS.", "success");
+        startOtpTimer(60);
+        otpInput.focus();
+      } else {
+        showNotif(data.message || "Failed to send OTP. Please try again.", "error");
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = "Send OTP";
+      }
+    } catch (err) {
+      showNotif("Network error. Please check your connection.", "error");
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = "Send OTP";
+    } finally {
+      // Only re-enable if not already in timer
+      if (!otpSent) {
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = "Send OTP";
+      }
+    }
+  });
+
+  // Verify OTP
+  verifyOtpBtn.addEventListener("click", async function () {
+    const phone = phoneInput.value.trim();
+    const code = otpInput.value.trim();
+    
+    if (!code) {
+      setErr("otp_code","otpError","Please enter the OTP code.");
+      return;
+    }
+    if (code.length < 6) {
+      setErr("otp_code","otpError","OTP must be 6 digits.");
+      return;
+    }
+    clearErr("otp_code","otpError");
+
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = "Verifying...";
+    try {
+      const response = await fetch("/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: phone, otp: code })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        otpVerified = true;
+        otpSent = true;
+        if (otpTimer) clearInterval(otpTimer);
+        otpTimerHint.textContent = '✓ OTP verified';
+        verifyOtpBtn.textContent = '✓ Verified';
+        verifyOtpBtn.disabled = true;
+        otpInput.disabled = true;
+        showNotif("Phone number verified successfully.", "success");
+      } else {
+        setErr("otp_code","otpError",data.message || "Invalid OTP. Please try again.");
+        verifyOtpBtn.textContent = "Verify";
+        verifyOtpBtn.disabled = false;
+      }
+    } catch (err) {
+      showNotif("Network error. Please check your connection.", "error");
+      verifyOtpBtn.textContent = "Verify";
+      verifyOtpBtn.disabled = false;
+    }
+  });
+
+  otpInput.addEventListener("input", function () {
+    const val = this.value.trim();
+    if (val.length >= 6 && otpSent && !otpVerified) {
+      verifyOtpBtn.disabled = false;
+    } else {
+      verifyOtpBtn.disabled = true;
+    }
+  });
+
+  // Phone validation
+  phoneInput.addEventListener("blur", function () {
+    const v = this.value.trim();
+    if (v && !isValidPhone(v)) {
+      setErr("phone","phoneError","Use 07XXXXXXXX or +94XXXXXXXXX format.");
+    } else if (!v) {
+      setErr("phone","phoneError","Phone number is required.");
+    } else {
+      clearErr("phone","phoneError");
+    }
+  });
+  phoneInput.addEventListener("input", function () {
+    if (this.value.trim() && isValidPhone(this.value.trim())) {
+      clearErr("phone","phoneError");
+    }
+  });
+
+  // Secondary phone validation (optional)
+  secondaryPhone.addEventListener("blur", function () {
+    const v = this.value.trim();
+    if (v && !isValidPhone(v)) {
+      setErr("secondary_phone","secondaryPhoneError","Use 07XXXXXXXX or +94XXXXXXXXX format.");
+    } else {
+      clearErr("secondary_phone","secondaryPhoneError");
+    }
+  });
+  secondaryPhone.addEventListener("input", function () {
+    if (!this.value.trim() || isValidPhone(this.value.trim())) {
+      clearErr("secondary_phone","secondaryPhoneError");
+    }
+  });
+
+  // Email validation
   document.getElementById("email").addEventListener("blur", function () {
     const v = this.value.trim();
     if (!v) setErr("email","emailError","Email is required.");
@@ -161,6 +525,7 @@
     if (this.value.trim()) clearErr("email","emailError");
   });
 
+  // Confirm password validation
   document.getElementById("confirm_password").addEventListener("blur", function () {
     const pw = document.getElementById("password").value;
     if (this.value && this.value !== pw) {
@@ -174,31 +539,69 @@
     if (this.value === pw) clearErr("confirm_password","confirmError");
   });
 
-  document.getElementById("phone").addEventListener("blur", function () {
+  // City validation
+  cityInput.addEventListener("blur", function () {
     const v = this.value.trim();
-    if (v && !isValidPhone(v)) {
-      setErr("phone","phoneError",
-        "Please enter a valid phone number. Use 07XXXXXXXX or +94XXXXXXXXX format.");
+    if (!v) {
+      setErr("city","cityError","City is required.");
     } else {
-      clearErr("phone","phoneError");
+      clearErr("city","cityError");
     }
   });
-  document.getElementById("phone").addEventListener("input", function () {
-    if (isValidPhone(this.value.trim())) clearErr("phone","phoneError");
+  cityInput.addEventListener("input", function () {
+    if (this.value.trim()) clearErr("city","cityError");
   });
 
-  // Submit
+  // Province validation
+  provinceSelect.addEventListener("blur", function () {
+    if (!this.value) {
+      setErr("province","provinceError","Please select your province.");
+    } else {
+      clearErr("province","provinceError");
+    }
+  });
+  provinceSelect.addEventListener("change", function () {
+    if (this.value) clearErr("province","provinceError");
+  });
+
+  // Terms checkbox validation
+  termsCheckbox.addEventListener("change", function () {
+    if (this.checked) {
+      clearErr("terms","termsError");
+    }
+  });
+
+  // Submit - OTP mandatory check
   form.addEventListener("submit", async function (e) {
     e.preventDefault();
     hideNotif();
+
+    // Check terms first
+    if (!termsCheckbox.checked) {
+      setErr("terms","termsError","You must agree to the Terms & Conditions.");
+      termsCheckbox.focus();
+      return;
+    } else {
+      clearErr("terms","termsError");
+    }
+
+    if (!otpVerified) {
+      showNotif("Please verify your phone number with OTP first.", "error");
+      otpFieldGroup.style.display = 'block';
+      otpInput.focus();
+      return;
+    }
 
     const full_name        = document.getElementById("full_name").value.trim();
     const email            = document.getElementById("email").value.trim();
     const password         = document.getElementById("password").value;
     const confirm_password = document.getElementById("confirm_password").value;
-    const phone            = document.getElementById("phone").value.trim();
+    const phone            = phoneInput.value.trim();
+    const secondary_phone  = secondaryPhone.value.trim();
     const nic              = document.getElementById("nic").value.trim();
     const address          = document.getElementById("address").value.trim();
+    const city             = cityInput.value.trim();
+    const province         = provinceSelect.value;
 
     let valid = true;
 
@@ -217,16 +620,35 @@
     else if (password !== confirm_password) { setErr("confirm_password","confirmError","Passwords do not match."); valid=false; }
     else clearErr("confirm_password","confirmError");
 
-    if (phone && !isValidPhone(phone)) {
-      setErr("phone","phoneError","Please enter a valid phone number. Use 07XXXXXXXX or +94XXXXXXXXX format.");
+    if (!phone) { setErr("phone","phoneError","Phone number is required."); valid=false; }
+    else if (!isValidPhone(phone)) { setErr("phone","phoneError","Enter a valid phone number."); valid=false; }
+    else clearErr("phone","phoneError");
+
+    if (secondary_phone && !isValidPhone(secondary_phone)) {
+      setErr("secondary_phone","secondaryPhoneError","Enter a valid secondary phone number.");
       valid=false;
-    } else clearErr("phone","phoneError");
+    } else {
+      clearErr("secondary_phone","secondaryPhoneError");
+    }
 
     if (!nic) { setErr("nic","nicError","NIC number is required."); valid=false; }
     else clearErr("nic","nicError");
 
     if (!address) { setErr("address","addressError","Address is required."); valid=false; }
     else clearErr("address","addressError");
+
+    if (!city) { setErr("city","cityError","City is required."); valid=false; }
+    else clearErr("city","cityError");
+
+    if (!province) { setErr("province","provinceError","Please select your province."); valid=false; }
+    else clearErr("province","provinceError");
+
+    if (!termsCheckbox.checked) {
+      setErr("terms","termsError","You must agree to the Terms & Conditions.");
+      valid=false;
+    } else {
+      clearErr("terms","termsError");
+    }
 
     if (!valid) return;
 
@@ -235,7 +657,11 @@
       const res  = await fetch("/register", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ full_name, email, password, confirm_password, phone, nic, address }),
+        body:    JSON.stringify({ 
+          full_name, email, password, confirm_password, 
+          phone, secondary_phone, nic, address, city, province, 
+          otpVerified, terms: termsCheckbox.checked 
+        }),
         credentials: "include"
       });
       const data = await res.json();
@@ -249,7 +675,8 @@
           const errMap = {
             email:            "emailError",
             confirm_password: "confirmError",
-            phone:            "phoneError"
+            phone:            "phoneError",
+            secondary_phone:  "secondaryPhoneError"
           };
           if (errMap[data.field]) setErr(data.field, errMap[data.field], data.message);
         }

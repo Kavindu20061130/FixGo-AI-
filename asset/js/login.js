@@ -126,8 +126,12 @@
 
       if (response.ok && data.success) {
         showNotification("Login successful! Redirecting…", "success");
+        // Server tells us where to go: customers -> /dashboard,
+        // workers -> /worker/dashboard. Fall back to /dashboard
+        // if it's ever missing.
+        const target = data.redirect || "/dashboard";
         setTimeout(function () {
-          window.location.href = "/dashboard";
+          window.location.href = target;
         }, 800);
       } else {
         const msg = data.message || "Login failed. Please try again.";
