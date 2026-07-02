@@ -1,40 +1,978 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Complete Your Profile - FixGo</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FixGo – Complete Your Profile</title>
+  <link rel="icon" type="image/png" href="/asset/images/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/asset/css/login.css" />
+  <style>
+    /* ===== Fallback design tokens (in case login.css vars aren't present) ===== */
+    :root {
+      --brand: #E8431A;
+      --brand-dark: #d03a14;
+      --navy: #0b1a2b;
+      --navy-light: #1f3a4e;
+      --border: #d1d5db;
+      --text-color: #1a1a1a;
+      --text-light: #6b7280;
+      --success-bg: #e6f7e6;
+      --success-text: #1e7e34;
+      --success-border: #b8e0b8;
+      --error-bg: #fde8e8;
+      --error-text: #a11f1f;
+      --error-border: #f5c6c6;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif; }
+
+    /* ===== Page layout (mirrors register/login two-panel design) ===== */
+    .page-wrapper {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+    }
+    .hero-panel {
+      flex: 1.1;
+      position: relative;
+      overflow: hidden;
+      display: none;
+    }
+    .hero-panel .hero-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      animation: heroZoom 18s ease-in-out infinite alternate;
+    }
+    @keyframes heroZoom {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.06); }
+    }
+    .hero-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(11,26,43,0) 40%, rgba(11,26,43,0.55) 100%);
+    }
+    .hero-caption {
+      position: absolute;
+      bottom: 48px;
+      left: 48px;
+      right: 48px;
+      color: #fff;
+      animation: floatUp 1s ease-out 0.3s both;
+    }
+    .hero-caption h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      margin: 0 0 6px;
+      letter-spacing: 0.2px;
+    }
+    .hero-caption p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin: 0;
+    }
+    @media (min-width: 900px) {
+      .hero-panel { display: block; }
+    }
+
+    .form-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 32px 24px 40px;
+      overflow-y: auto;
+      background: #fff;
+      position: relative;
+    }
+
+    .logo-wrap {
+      width: 100%;
+      max-width: 460px;
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 8px;
+      animation: fadeIn 0.7s ease both;
+    }
+    .logo-wrap .logo {
+      height: 38px;
+      object-fit: contain;
+    }
+
+    .form-container {
+      max-width: min(460px, 100%);
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .heading {
+      font-size: 1.7rem;
+      font-weight: 800;
+      color: var(--text-color);
+      letter-spacing: 0.3px;
+      margin: 18px 0 4px;
+      text-align: center;
+      animation: floatUp 0.6s ease both;
+    }
+    .subheading {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 0.92rem;
+      margin: 0 0 22px;
+      animation: floatUp 0.6s ease 0.05s both;
+    }
+
+    /* ===== Progress indicator ===== */
+    .progress-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 26px;
+      animation: floatUp 0.6s ease 0.1s both;
+    }
+    .progress-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .progress-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: #f0f1f3;
+      color: var(--text-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: all 0.35s cubic-bezier(.4,0,.2,1);
+      flex-shrink: 0;
+    }
+    .progress-dot.active {
+      background: var(--navy);
+      color: #fff;
+      transform: scale(1.08);
+      box-shadow: 0 0 0 4px rgba(11,26,43,0.12);
+    }
+    .progress-dot.done {
+      background: var(--brand);
+      color: #fff;
+    }
+    .progress-line {
+      width: 36px;
+      height: 2px;
+      background: #e5e7eb;
+      transition: background 0.35s;
+    }
+    .progress-line.done { background: var(--brand); }
+    .progress-label {
+      font-size: 0.68rem;
+      color: var(--text-light);
+      text-align: center;
+      margin-top: 4px;
+      max-width: 70px;
+    }
+
+    /* ===== Notification banner ===== */
+    .notification {
+      margin: 0 0 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      animation: slideDown 0.35s ease both;
+    }
+    .notification.hidden { display: none; }
+    .notification.success {
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
+    }
+    .notification.error {
+      background: var(--error-bg);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
+    }
+
+    /* ===== Field groups ===== */
+    .field-group {
+      margin-bottom: 16px;
+      animation: floatUp 0.5s ease both;
+    }
+    .field-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-bottom: 6px;
+    }
+    .field-group input[type="text"],
+    .field-group input[type="email"],
+    .field-group input[type="password"],
+    .field-group input[type="tel"],
+    .field-group select,
+    .field-group textarea {
+      width: 100%;
+      box-sizing: border-box;
+      height: 46px;
+      padding: 0 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text-color);
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      appearance: auto;
+    }
+    .field-group textarea {
+      height: auto;
+      min-height: 88px;
+      padding: 12px 16px;
+      resize: vertical;
+    }
+    .field-group input:focus,
+    .field-group select:focus,
+    .field-group textarea:focus {
+      outline: none;
+      border-color: var(--navy);
+      box-shadow: 0 0 0 4px rgba(11,26,43,0.08);
+    }
+    .field-group input.input-error,
+    .field-group select.input-error,
+    .field-group textarea.input-error {
+      border-color: #dc3545;
+      animation: shake 0.4s ease;
+    }
+    .field-group input.input-success,
+    .field-group select.input-success {
+      border-color: #1e7e34;
+    }
+    .field-error {
+      display: block;
+      min-height: 16px;
+      font-size: 0.76rem;
+      color: #dc3545;
+      margin-top: 5px;
+      animation: fadeIn 0.25s ease both;
+    }
+    .hint {
+      font-size: 0.75rem;
+      color: var(--text-light);
+      margin-top: 5px;
+    }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 480px) {
+      .row-2 { grid-template-columns: 1fr; }
+    }
+
+    /* ===== OTP group ===== */
+    .otp-group {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex-wrap: nowrap;
+    }
+    .otp-group .otp-input { flex: 1; min-width: 0; }
+    .otp-group .btn-otp {
+      background: var(--navy);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 0 18px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      white-space: nowrap;
+      height: 46px;
+      flex-shrink: 0;
+      min-width: 104px;
+    }
+    .otp-group .btn-otp:hover:not(:disabled) {
+      background: var(--navy-light);
+      transform: translateY(-1px);
+    }
+    .otp-group .btn-otp:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+    .otp-group .btn-otp.verified {
+      background: #1e7e34;
+    }
+    .otp-pulse {
+      animation: pulseGlow 1.6s ease-in-out infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(11,26,43,0.0); }
+      50% { box-shadow: 0 0 0 6px rgba(11,26,43,0.08); }
+    }
+
+    .otp-boxes {
+      display: flex;
+      gap: 8px;
+      margin-top: 2px;
+    }
+    .otp-boxes input {
+      width: 44px !important;
+      height: 50px !important;
+      text-align: center;
+      font-size: 1.2rem !important;
+      font-weight: 700;
+      padding: 0 !important;
+    }
+    @media (max-width: 380px) {
+      .otp-boxes input { width: 38px !important; height: 46px !important; }
+    }
+
+    /* ===== Terms checkbox ===== */
+    .terms-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin: 6px 0 4px;
+      animation: floatUp 0.5s ease both;
+    }
+    .terms-group input[type="checkbox"] {
+      width: 19px;
+      height: 19px;
+      margin-top: 2px;
+      flex-shrink: 0;
+      accent-color: var(--navy);
+      cursor: pointer;
+    }
+    .terms-group label {
+      font-size: 0.85rem;
+      color: var(--text-color);
+      cursor: pointer;
+      line-height: 1.45;
+    }
+    .terms-group label a {
+      color: var(--navy);
+      font-weight: 600;
+      text-decoration: underline;
+    }
+    .terms-group label a:hover { color: var(--navy-light); }
+
+    /* ===== Buttons ===== */
+    .btn-signin {
+      width: 100%;
+      padding: 13px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-signin:hover:not(:disabled) {
+      background: var(--brand-dark);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 20px rgba(232,67,26,0.28);
+    }
+    .btn-signin:active:not(:disabled) { transform: translateY(0); }
+    .btn-signin:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%;
+      padding: 13px;
+      background: #fff;
+      color: var(--navy);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 10px;
+    }
+    .btn-secondary:hover {
+      border-color: var(--navy);
+      background: #f7f8fa;
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      display: inline-block;
+      animation: spin 0.7s linear infinite;
+    }
+
+    /* ===== Success overlay ===== */
+    .success-screen {
+      display: none;
+      text-align: center;
+      animation: floatUp 0.5s ease both;
+    }
+    .success-screen.show { display: block; }
+    .success-icon {
+      width: 86px;
+      height: 86px;
+      margin: 8px auto 18px;
+      border-radius: 50%;
+      background: var(--success-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: popIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+    }
+    .success-icon svg {
+      width: 42px;
+      height: 42px;
+    }
+    .success-screen h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--text-color);
+      margin-bottom: 8px;
+    }
+    .success-screen p {
+      color: var(--text-light);
+      font-size: 0.92rem;
+      margin-bottom: 4px;
+    }
+
+    /* ===== Animations ===== */
+    @keyframes floatUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-5px); }
+      40% { transform: translateX(5px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.4); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+    @keyframes checkDraw {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Stagger field-group entrance */
+    .field-group:nth-of-type(1) { animation-delay: .08s; }
+    .field-group:nth-of-type(2) { animation-delay: .12s; }
+    .field-group:nth-of-type(3) { animation-delay: .16s; }
+    .field-group:nth-of-type(4) { animation-delay: .20s; }
+    .field-group:nth-of-type(5) { animation-delay: .24s; }
+    .field-group:nth-of-type(6) { animation-delay: .28s; }
+    .field-group:nth-of-type(7) { animation-delay: .32s; }
+
+    .step-panel {
+      display: none;
+    }
+    .step-panel.active {
+      display: block;
+      animation: floatUp 0.4s ease both;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Complete Your Profile</h1>
-        <p>You signed in with Google. Please provide additional details.</p>
-        <form id="profileForm">
-            <input type="text" id="nic" placeholder="NIC Number" required>
-            <textarea id="address" placeholder="Address" required></textarea>
-            <input type="tel" id="phone" placeholder="Phone (optional)">
-            <button type="submit">Save</button>
-        </form>
+
+<div class="page-wrapper">
+
+  <!-- LEFT PANEL -->
+  <div class="hero-panel">
+    <img src="/asset/images/logincover.jpeg" alt="FixGo technician with customer" class="hero-img" />
+    <div class="hero-overlay"></div>
+    <div class="hero-caption">
+      <h2>You're almost in 🎉</h2>
+      <p>Just a few more details and your FixGo account will be ready to go.</p>
     </div>
-    <script>
-        document.getElementById('profileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const data = {
-                nic: document.getElementById('nic').value,
-                address: document.getElementById('address').value,
-                phone: document.getElementById('phone').value
-            };
-            const res = await fetch('/complete-profile', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            const result = await res.json();
-            if (result.success) {
-                window.location.href = '/dashboard';
-            } else {
-                alert('Error: ' + result.message);
-            }
-        });
-    </script>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="form-panel">
+    <div class="logo-wrap">
+      <img src="/asset/images/logo.png" alt="FixGo Logo" class="logo" />
+    </div>
+
+    <div class="form-container">
+
+      <!-- ===== Main form screen ===== -->
+      <div id="formScreen">
+        <h1 class="heading">COMPLETE YOUR PROFILE</h1>
+        <p class="subheading">You signed in with Google — just a few more details to get started.</p>
+
+        <!-- Progress -->
+        <div class="progress-wrap">
+          <div class="progress-step">
+            <div class="progress-dot active" id="dot1">1</div>
+          </div>
+          <div class="progress-line" id="line1"></div>
+          <div class="progress-step">
+            <div class="progress-dot" id="dot2">2</div>
+          </div>
+        </div>
+
+        <div id="notification" class="notification hidden"></div>
+
+        <form id="profileForm" novalidate>
+
+          <!-- ===== STEP 1: Phone + OTP ===== -->
+          <div class="step-panel active" id="step1">
+
+            <div class="field-group">
+              <label for="phone">Phone Number <span style="color:#dc3545;">*</span></label>
+              <div class="otp-group">
+                <input type="tel" id="phone" placeholder="07XXXXXXXX or +94XXXXXXXXX" class="otp-input" required />
+                <button type="button" class="btn-otp" id="sendOtpBtn">Send OTP</button>
+              </div>
+              <span class="field-error" id="phoneError"></span>
+              <div class="hint" id="otpHint">We'll text you a 6-digit verification code.</div>
+            </div>
+
+            <div class="field-group" id="otpFieldGroup" style="display:none;">
+              <label for="otp_code">Enter Verification Code <span style="color:#dc3545;">*</span></label>
+              <div class="otp-group">
+                <input type="text" id="otp_code" placeholder="6-digit code" class="otp-input" inputmode="numeric" maxlength="6" />
+                <button type="button" class="btn-otp" id="verifyOtpBtn" disabled>Verify</button>
+              </div>
+              <span class="field-error" id="otpError"></span>
+              <div class="hint" id="otpTimerHint"></div>
+            </div>
+
+            <button type="button" class="btn-signin" id="toStep2Btn" disabled>Continue</button>
+          </div>
+
+          <!-- ===== STEP 2: Profile details ===== -->
+          <div class="step-panel" id="step2">
+
+            <div class="field-group">
+              <label for="nic">NIC Number <span style="color:#dc3545;">*</span></label>
+              <input type="text" id="nic" placeholder="e.g. 199012345678" required />
+              <span class="field-error" id="nicError"></span>
+            </div>
+
+            <div class="field-group">
+              <label for="address">Address <span style="color:#dc3545;">*</span></label>
+              <textarea id="address" placeholder="No. 12, Main Street, Colombo" required></textarea>
+              <span class="field-error" id="addressError"></span>
+            </div>
+
+            <div class="row-2">
+              <div class="field-group">
+                <label for="city">City <span style="color:#dc3545;">*</span></label>
+                <input type="text" id="city" placeholder="e.g. Negombo" required />
+                <span class="field-error" id="cityError"></span>
+              </div>
+
+              <div class="field-group">
+                <label for="province">Province <span style="color:#dc3545;">*</span></label>
+                <select id="province" required>
+                  <option value="">Select province</option>
+                  <option value="Central">Central</option>
+                  <option value="Eastern">Eastern</option>
+                  <option value="North Central">North Central</option>
+                  <option value="Northern">Northern</option>
+                  <option value="North Western">North Western</option>
+                  <option value="Sabaragamuwa">Sabaragamuwa</option>
+                  <option value="Southern">Southern</option>
+                  <option value="Uva">Uva</option>
+                  <option value="Western">Western</option>
+                </select>
+                <span class="field-error" id="provinceError"></span>
+              </div>
+            </div>
+
+            <!-- Terms -->
+            <div class="terms-group">
+              <input type="checkbox" id="terms" required />
+              <label for="terms">
+                I agree to the <a href="/terms" target="_blank">Terms &amp; Conditions</a> and
+                <a href="/privacy" target="_blank">Privacy Policy</a> <span style="color:#dc3545;">*</span>
+              </label>
+            </div>
+            <span class="field-error" id="termsError"></span>
+
+            <button type="button" class="btn-secondary" id="backBtn">← Back</button>
+            <button type="submit" class="btn-signin" id="saveBtn">Save &amp; Continue</button>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- ===== Success screen ===== -->
+      <div class="success-screen" id="successScreen">
+        <div class="success-icon">
+          <svg viewBox="0 0 52 52" fill="none">
+            <circle cx="26" cy="26" r="25" stroke="#1e7e34" stroke-width="2" opacity="0.25"/>
+            <path d="M14 27l8 8 16-17" stroke="#1e7e34" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+              stroke-dasharray="40" stroke-dashoffset="40" style="animation: checkDraw 0.5s ease 0.2s forwards;"/>
+          </svg>
+        </div>
+        <h2>Profile Complete!</h2>
+        <p>Redirecting you to your dashboard…</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  const profileForm = document.getElementById("profileForm");
+  const notif       = document.getElementById("notification");
+
+  // Step elements
+  const step1 = document.getElementById("step1");
+  const step2 = document.getElementById("step2");
+  const dot1  = document.getElementById("dot1");
+  const dot2  = document.getElementById("dot2");
+  const line1 = document.getElementById("line1");
+  const toStep2Btn = document.getElementById("toStep2Btn");
+  const backBtn    = document.getElementById("backBtn");
+  const formScreen   = document.getElementById("formScreen");
+  const successScreen = document.getElementById("successScreen");
+
+  // OTP elements
+  const phoneInput    = document.getElementById("phone");
+  const sendOtpBtn     = document.getElementById("sendOtpBtn");
+  const otpFieldGroup  = document.getElementById("otpFieldGroup");
+  const otpInput       = document.getElementById("otp_code");
+  const verifyOtpBtn   = document.getElementById("verifyOtpBtn");
+  const otpHint        = document.getElementById("otpHint");
+  const otpTimerHint   = document.getElementById("otpTimerHint");
+
+  // Step 2 elements
+  const nicInput      = document.getElementById("nic");
+  const addressInput  = document.getElementById("address");
+  const cityInput     = document.getElementById("city");
+  const provinceSelect= document.getElementById("province");
+  const termsCheckbox = document.getElementById("terms");
+  const saveBtn        = document.getElementById("saveBtn");
+  const saveBtnDefault = saveBtn.innerHTML;
+
+  let otpSent = false;
+  let otpVerified = false;
+  let otpTimer = null;
+  let countdown = 0;
+
+  function showNotif(msg, type) {
+    notif.textContent = msg;
+    notif.className = `notification ${type}`;
+  }
+  function hideNotif() { notif.className = "notification hidden"; }
+
+  function setErr(inputId, errId, msg) {
+    const el = document.getElementById(inputId);
+    const er = document.getElementById(errId);
+    if (el) el.classList.add("input-error");
+    if (er) er.textContent = msg;
+  }
+  function clearErr(inputId, errId) {
+    const el = document.getElementById(inputId);
+    const er = document.getElementById(errId);
+    if (el) el.classList.remove("input-error");
+    if (er) er.textContent = "";
+  }
+
+  function isValidPhone(p) {
+    if (!p) return false;
+    return /^(07\d{8}|\+[1-9]\d{6,14})$/.test(p.trim());
+  }
+
+  function startOtpTimer(seconds = 60) {
+    if (otpTimer) clearInterval(otpTimer);
+    countdown = seconds;
+    sendOtpBtn.disabled = true;
+    otpTimerHint.textContent = `Resend in ${countdown}s`;
+    otpTimer = setInterval(() => {
+      countdown--;
+      if (countdown <= 0) {
+        clearInterval(otpTimer);
+        otpTimer = null;
+        sendOtpBtn.disabled = false;
+        otpTimerHint.textContent = "Code expired. Send again.";
+        if (!otpVerified) {
+          otpSent = false;
+          otpInput.value = "";
+          verifyOtpBtn.disabled = true;
+        }
+      } else {
+        otpTimerHint.textContent = `Resend in ${countdown}s`;
+      }
+    }, 1000);
+  }
+
+  // ===== Send OTP =====
+  sendOtpBtn.addEventListener("click", async function () {
+    const phone = phoneInput.value.trim();
+    if (!phone) { setErr("phone","phoneError","Phone number is required."); return; }
+    if (!isValidPhone(phone)) { setErr("phone","phoneError","Use 07XXXXXXXX or +94XXXXXXXXX format."); return; }
+    clearErr("phone","phoneError");
+    hideNotif();
+
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = "Sending...";
+    sendOtpBtn.classList.add("otp-pulse");
+
+    try {
+      const response = await fetch("/send-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        otpSent = true;
+        otpVerified = false;
+        otpInput.value = "";
+        otpInput.disabled = false;
+        verifyOtpBtn.disabled = true;
+        verifyOtpBtn.classList.remove("verified");
+        verifyOtpBtn.textContent = "Verify";
+        otpFieldGroup.style.display = "block";
+        otpHint.textContent = `Code sent to ${phone}`;
+        showNotif("OTP sent to your phone via SMS.", "success");
+        startOtpTimer(60);
+        otpInput.focus();
+      } else {
+        showNotif(data.message || "Failed to send OTP. Please try again.", "error");
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = "Send OTP";
+      }
+    } catch (err) {
+      showNotif("Network error. Please check your connection.", "error");
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = "Send OTP";
+    } finally {
+      sendOtpBtn.classList.remove("otp-pulse");
+      if (!otpSent) {
+        sendOtpBtn.disabled = false;
+        sendOtpBtn.textContent = "Send OTP";
+      }
+    }
+  });
+
+  // ===== Verify OTP =====
+  verifyOtpBtn.addEventListener("click", async function () {
+    const phone = phoneInput.value.trim();
+    const code = otpInput.value.trim();
+
+    if (!code) { setErr("otp_code","otpError","Please enter the verification code."); return; }
+    if (code.length < 6) { setErr("otp_code","otpError","Code must be 6 digits."); return; }
+    clearErr("otp_code","otpError");
+
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = "Verifying...";
+
+    try {
+      const response = await fetch("/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, otp: code })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        otpVerified = true;
+        if (otpTimer) clearInterval(otpTimer);
+        otpTimerHint.textContent = "✓ Phone verified";
+        verifyOtpBtn.textContent = "✓ Verified";
+        verifyOtpBtn.classList.add("verified");
+        verifyOtpBtn.disabled = true;
+        otpInput.disabled = true;
+        phoneInput.disabled = true;
+        sendOtpBtn.disabled = true;
+        phoneInput.classList.add("input-success");
+        showNotif("Phone number verified successfully.", "success");
+        toStep2Btn.disabled = false;
+      } else {
+        setErr("otp_code","otpError", data.message || "Invalid code. Please try again.");
+        verifyOtpBtn.textContent = "Verify";
+        verifyOtpBtn.disabled = false;
+      }
+    } catch (err) {
+      showNotif("Network error. Please check your connection.", "error");
+      verifyOtpBtn.textContent = "Verify";
+      verifyOtpBtn.disabled = false;
+    }
+  });
+
+  otpInput.addEventListener("input", function () {
+    const val = this.value.replace(/\D/g, "");
+    this.value = val;
+    if (val.length >= 6 && otpSent && !otpVerified) {
+      verifyOtpBtn.disabled = false;
+    } else if (!otpVerified) {
+      verifyOtpBtn.disabled = true;
+    }
+  });
+
+  phoneInput.addEventListener("input", function () {
+    if (this.value.trim() && isValidPhone(this.value.trim())) {
+      clearErr("phone","phoneError");
+    }
+  });
+
+  // ===== Step navigation =====
+  toStep2Btn.addEventListener("click", function () {
+    if (!otpVerified) {
+      showNotif("Please verify your phone number first.", "error");
+      return;
+    }
+    step1.classList.remove("active");
+    step2.classList.add("active");
+    dot1.classList.add("done");
+    dot1.textContent = "✓";
+    dot2.classList.add("active");
+    line1.classList.add("done");
+    hideNotif();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  backBtn.addEventListener("click", function () {
+    step2.classList.remove("active");
+    step1.classList.add("active");
+    dot2.classList.remove("active");
+    dot1.classList.remove("done");
+    dot1.textContent = "1";
+    line1.classList.remove("done");
+    hideNotif();
+  });
+
+  // ===== Field validation (step 2) =====
+  nicInput.addEventListener("blur", function () {
+    if (!this.value.trim()) setErr("nic","nicError","NIC number is required.");
+    else clearErr("nic","nicError");
+  });
+  nicInput.addEventListener("input", function () { if (this.value.trim()) clearErr("nic","nicError"); });
+
+  addressInput.addEventListener("blur", function () {
+    if (!this.value.trim()) setErr("address","addressError","Address is required.");
+    else clearErr("address","addressError");
+  });
+  addressInput.addEventListener("input", function () { if (this.value.trim()) clearErr("address","addressError"); });
+
+  cityInput.addEventListener("blur", function () {
+    if (!this.value.trim()) setErr("city","cityError","City is required.");
+    else clearErr("city","cityError");
+  });
+  cityInput.addEventListener("input", function () { if (this.value.trim()) clearErr("city","cityError"); });
+
+  provinceSelect.addEventListener("change", function () {
+    if (this.value) clearErr("province","provinceError");
+  });
+
+  termsCheckbox.addEventListener("change", function () {
+    if (this.checked) clearErr("terms","termsError");
+  });
+
+  function setSaveLoading(v) {
+    saveBtn.disabled = v;
+    saveBtn.innerHTML = v ? '<span class="spinner"></span> Saving…' : saveBtnDefault;
+  }
+
+  // ===== Submit =====
+  profileForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    hideNotif();
+
+    const nic      = nicInput.value.trim();
+    const address  = addressInput.value.trim();
+    const city     = cityInput.value.trim();
+    const province = provinceSelect.value;
+    const phone    = phoneInput.value.trim();
+
+    let valid = true;
+
+    if (!otpVerified) {
+      showNotif("Please verify your phone number first.", "error");
+      valid = false;
+    }
+    if (!nic) { setErr("nic","nicError","NIC number is required."); valid = false; }
+    else clearErr("nic","nicError");
+
+    if (!address) { setErr("address","addressError","Address is required."); valid = false; }
+    else clearErr("address","addressError");
+
+    if (!city) { setErr("city","cityError","City is required."); valid = false; }
+    else clearErr("city","cityError");
+
+    if (!province) { setErr("province","provinceError","Please select your province."); valid = false; }
+    else clearErr("province","provinceError");
+
+    if (!termsCheckbox.checked) {
+      setErr("terms","termsError","You must agree to the Terms & Conditions.");
+      valid = false;
+    } else {
+      clearErr("terms","termsError");
+    }
+
+    if (!valid) return;
+
+    setSaveLoading(true);
+    try {
+      const res = await fetch("/complete-profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nic, address, city, province, phone,
+          otpVerified, terms: termsCheckbox.checked
+        }),
+        credentials: "include"
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        formScreen.style.display = "none";
+        successScreen.classList.add("show");
+        setTimeout(() => { window.location.href = "/dashboard"; }, 1800);
+      } else {
+        showNotif(result.message || "Something went wrong. Please try again.", "error");
+        if (result.field === "phone") {
+          step2.classList.remove("active");
+          step1.classList.add("active");
+        }
+      }
+    } catch (err) {
+      showNotif("Network error. Please check your connection.", "error");
+    } finally {
+      setSaveLoading(false);
+    }
+  });
+
+})();
+</script>
 </body>
 </html>
